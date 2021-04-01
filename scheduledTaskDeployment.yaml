@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atriarchscheduledtasksworker-deployment
+  namespace: atriarch-simc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: atriarchscheduledtasksworker
+  template:
+    metadata:
+      labels:
+        app: atriarchscheduledtasksworker
+    spec:
+      containers:
+      - name: atriarchscheduledtasksworker-container
+        image: ${CICD_IMAGE}:v1.0.${CICD_EXECUTION_SEQUENCE}
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        - name: Atriarch_Tasks_Rabbit_HostName
+          valueFrom:
+            secretKeyRef:
+              name: atriarch-rabbit-config
+              key: url_internal
+        - name: Atriarch_Tasks_Rabbit_UserName
+          valueFrom:
+            secretKeyRef:
+              name: atriarch-rabbit-config
+              key: atriarch_simc_user
+        - name: Atriarch_Tasks_Rabbit_Password
+          valueFrom:
+            secretKeyRef:
+              name: atriarch-rabbit-config
+              key: atriarch_simc_pass
+        - name: Atriarch_Tasks_Rabbit_VirtualHost
+          valueFrom:
+            secretKeyRef:
+              name: atriarch-rabbit-config
+              key: atriarch_vhost
+      imagePullSecrets:
+      - name: atriarch-systems-docker-group

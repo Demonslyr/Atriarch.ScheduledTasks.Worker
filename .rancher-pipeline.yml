@@ -1,0 +1,33 @@
+stages:
+- name: prepare
+  steps:
+  - runScriptConfig:
+      image: gcc:latest
+      shellScript: |-
+        #cd "$(pwd)@tmp"
+        ls -a
+        printf "%s" "$Nuget_Config" > "./src/NuGet.Config"
+        ls ./src
+    envFrom:
+    - sourceName: atriarch-nuget-config
+      sourceKey: Nuget_Config
+      targetKey: Nuget_Config
+- name: build
+  steps:      
+  - publishImageConfig:
+      dockerfilePath: ./src/Dockerfile
+      buildContext: .
+      tag: atriarch.scheduledtasks.worker:v1.0.${CICD_EXECUTION_SEQUENCE}
+      pushRemote: true
+      registry: docker.atriarch.systems
+- name: Deploy
+  steps:
+  - applyYamlConfig:
+      path: ./scheduledTaskDeployment.yaml
+timeout: 10
+notification:
+  recipients:
+  - recipient: dan@mail.atriarch.systems
+    notifier: c-56lvs:n-45qs9
+  condition:
+  - Failed
